@@ -58,16 +58,16 @@ router.post('/signup', (req, res) =>
         newUser.save(function (err, result) {
             if (err) {
               console.error(err);
-              res.send("User already in the database")
+              res.status(200).send({success: false,msg:"User already in the database"})
               return
             }
-            res.send({success: true, msg: 'Successful created new user.'})
+              res.status(200).send({success: true, msg: 'Successful created new user.'})
         });
 
 
     }
     else{
-        res.send("In valid request")
+        res.status(500).send({success: false, msg:"In valid request"})
     }
 
 })
@@ -114,7 +114,7 @@ router.route('/movies')
         newMovie.save(function (err, result) {
             if (err) {
                 //console.error(err);
-                res.send("Movies already in the database")
+                res.send({success:false, msg:"Movies already in the database"})
                 return
             }
             res.send({success: true, msg: 'Successful store new movies.'})
@@ -125,10 +125,10 @@ router.route('/movies')
     .put(authJwtController.isAuthenticated, function (req, res) {
         console.log(req.body)
         Movie.findOneAndUpdate({Title: req.body.title}, {Title:req.body.title, yearReleased: req.body.yearReleased,Genre:req.body.Genre, Actor:req.body.Actor}, function(err, result) {
-            if (err) return res.status(500).send("There is something wrong with the database")
-            if(!result) return res.status(200).send("There is something wrong with your input")
-            console.log(result)
-            return res.status(200).send('Succesfully saved.');
+            if (err) return res.status(500).send({success:false,msg:"There is something wrong with the database"})
+            if(!result) return res.status(200).send({success:false,msg:"There is something wrong with your input"})
+
+            return res.status(200).send({success:true,msg:'Succesfully saved.'});
         })
 
     })
@@ -138,14 +138,14 @@ router.route('/movies')
     Movie.findOneAndDelete({ Title: req.body.title }, function(err, result) {
 
             if (err) {
-                return res.status(500).send({msg:"Something wrong, Please contact your admin"});
+                return res.status(500).send({sucess:false,msg:"Something wrong, Please contact your admin"});
             }
             if(!result)
             {
-                return res.status(200).send({msg:"Movie not in the database"});
+                return res.status(200).send({success:false,msg:"Movie not in the database"});
             }
             else{
-                return res.status(200).send({msg:"Movie is deleted"});
+                return res.status(200).send({success:true, msg:"Movie is deleted"});
             }
         });
     })
