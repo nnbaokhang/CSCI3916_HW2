@@ -75,6 +75,10 @@ router.post('/signup', (req, res) =>
 
 router.post('/signin', (req, res) => {
     //var user = db.findOne(req.body.username);
+
+        if(typeof req.body.username == "undefined"|| typeof req.body.password == "undefined" ){
+            return res.status(401).send({success: false, msg: 'Please input username or passwpord'});
+        }
         var password = sha1(req.body.password);
         User.findOne({username: req.body.username,password: password},function(err,result){
 
@@ -109,21 +113,27 @@ router.route('/movies')
 router.route('/movies')
     .post(authJwtController.isAuthenticated, function(req,res){
 
+    if(req.body.Actor.length < 3){
+        return res.status(200).send({success:false, msg:"Check your input, your actor field is less than 3"})
+    }
     let newMovie = new Movie({Title:req.body.title, yearReleased: req.body.yearReleased,Genre:req.body.Genre, Actor:req.body.Actor})
 
         newMovie.save(function (err, result) {
             if (err) {
                 //console.error(err);
-                res.send({success:false, msg:"Movies already in the database"})
-                return
+                return res.status(200).send({success:false, msg:"Something wrong with your input"})
+
             }
-            res.send({success: true, msg: 'Successful store new movies.'})
+            if(!result) return res.status(200).send({success:false, msg:"Movies already in the database"})
+            return res.status(200).send({success: true, msg: 'Successful store new movies.'})
         });
 
     })
 router.route('/movies')
     .put(authJwtController.isAuthenticated, function (req, res) {
-        console.log(req.body)
+        if(req.body.Actor.length < 3){
+            return res.status(200).send({success:false, msg:"Check your input, your actor field is less than 3"})
+        }
         Movie.findOneAndUpdate({Title: req.body.title}, {Title:req.body.title, yearReleased: req.body.yearReleased,Genre:req.body.Genre, Actor:req.body.Actor}, function(err, result) {
             if (err) return res.status(500).send({success:false,msg:"There is something wrong with the database"})
             if(!result) return res.status(200).send({success:false,msg:"There is something wrong with your input"})
