@@ -5,7 +5,7 @@ const authJwtController = require('./auth_jwt')
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-//db = require('./db.js')()
+db = require('./db.js')()
 const passport = require('passport')
 const port = process.env.PORT || 3000
 const User = require('./Schema/User')
@@ -19,7 +19,8 @@ require('dotenv').config()
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(passport.initialize());
-mongoose.connect(`mongodb://${process.env.USER_NAME_DB}:${process.env.PASSWORD_DB}@ds125453.mlab.com:25453/hw2`)
+
+mongoose.connect(`mongodb+srv://${process.env.USER_NAME_DB}:${process.env.PASSWORD_DB}@cluster0-n7zxr.mongodb.net/test?retryWrites=true&w=majority`)
 var db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'connection error:'));

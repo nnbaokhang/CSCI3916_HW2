@@ -10,14 +10,15 @@ chai.use(chaiHttp);
 
 
 let login_details = {
-    'username': 'email@email.com',
-    'password': '123@abc'
+    'username': 'email12345@email.com',
+    'password': '123@abc',
+    'name': 'Khang'
 }
 
 //Our parent block
 describe('Register, Login and check token', () => {
     beforeEach((done) => { //Before each test we empty the database
-        db.userList = [];
+        //db.userList = [];
         done();
     });
     /*
@@ -43,18 +44,8 @@ describe('Register, Login and check token', () => {
 
                             let token = res.body.token;
                             console.log(token);
-                            // follow up with requesting user protected page
-                            chai.request(server)
-                                .post('/postjwt')
-                                // we set the auth header with our token
-                                .set('Authorization', token)
-                                .send({ echo: '' })
-                                .end((err, res) => {
-                                    res.should.have.status(200);
-                                    res.body.should.have.property('echo')
-                                    ;
-                                    done(); // Don't forget the done callback to indicate we're done!
-                                })
+
+                            done(); // Don't forget the done callback to indicate we're done!
                         });
                 });
         });
