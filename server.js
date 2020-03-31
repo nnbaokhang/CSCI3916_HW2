@@ -58,9 +58,9 @@ function trackDimension(category, action, label, value, dimension, metric) {
                 // Event value.
                 ev: value,
                 // Custom Dimension
-                cd1: dimension,
+                dimension1: dimension,
                 // Custom Metric
-                cm1: metric
+                metric1: metric
             },
         headers:
             {  'Cache-Control': 'no-cache' } };
@@ -262,12 +262,12 @@ router.route('/reviews')
                         res.end();
                     }
                     else {
-                        trackDimension('Feedback', 'Rating', 'Feedback for Movie', '3', 'Guardian\'s of the Galaxy 2', '1')
-                        /*
-                        trackDimension('Feedback', 'Rating', 'Feedback for Movie', req.body.rating , "Wonder Woman", '1').then(function (response) {
+                        let rating = req.body.rating
+                        let movies_name = req.body.title
+                        trackDimension('Feedback', 'Rating', 'Feedback for Movie', rating, movies_name, '1').then(function (response) {
                             console.log(response.body);
                         })
-                        */
+
 
                         res.status(200).send({success: true, msg: 'Successful store new reviews.'})
                         res.end();
