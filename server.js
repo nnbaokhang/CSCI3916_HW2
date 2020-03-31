@@ -262,9 +262,13 @@ router.route('/reviews')
                         res.end();
                     }
                     else {
+                        trackDimension('Feedback', 'Rating', 'Feedback for Movie', '3', 'Guardian\'s of the Galaxy 2', '1')
+                        /*
                         trackDimension('Feedback', 'Rating', 'Feedback for Movie', req.body.rating , "Wonder Woman", '1').then(function (response) {
                             console.log(response.body);
                         })
+                        */
+
                         res.status(200).send({success: true, msg: 'Successful store new reviews.'})
                         res.end();
                     }
