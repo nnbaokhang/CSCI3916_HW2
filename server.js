@@ -240,7 +240,6 @@ router.route('/reviews')
                 res.end();
             }
             else if (!result) {
-
                 res.status(200).send({success: false, msg: "Movies are not in the database"})
                 res.end();
             }
@@ -258,7 +257,7 @@ router.route('/reviews')
                         res.status(500).send({success:false, msg:"Something wrong with your input"})
                         res.end();
                     }
-                    if(!result) {
+                    else if(!result) {
                         res.status(200).send({success: false, msg: "Something wrong with your input"})
                         res.end();
                     }
