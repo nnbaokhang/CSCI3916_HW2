@@ -262,7 +262,9 @@ router.route('/reviews')
                         res.end();
                     }
                     else {
-                        trackDimension('Feedback', 'Rating', 'Feedback for Movie', req.body.rating , req.body.title, '1')
+                        trackDimension('Feedback', 'Rating', 'Feedback for Movie', req.body.rating , req.body.title, '1').then(function (response) {
+                            console.log(response.body);
+                        })
                         res.status(200).send({success: true, msg: 'Successful store new reviews.'})
                         res.end();
                     }
