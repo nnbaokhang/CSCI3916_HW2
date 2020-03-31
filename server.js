@@ -14,6 +14,7 @@ const Review = require('./Schema/Review')
 const jwtDecode = require('jwt-decode');
 const cors = require('cors');
 const sha1 = require('sha1');
+const crypto = require("crypto");
 const GA_TRACKING_ID = process.env.GA_KEY;
 const  rp = require('request-promise');
 app.use(cors());
