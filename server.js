@@ -58,9 +58,9 @@ function trackDimension(category, action, label, value, dimension, metric) {
                 // Event value.
                 ev: value,
                 // Custom Dimension
-                dimension1: dimension,
+                cd2: dimension,
                 // Custom Metric
-                metric1: metric
+                cm1: metric
             },
         headers:
             {  'Cache-Control': 'no-cache' } };
