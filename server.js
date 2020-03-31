@@ -12,10 +12,10 @@ const User = require('./Schema/User')
 const Movie = require('./Schema/Movie')
 const Review = require('./Schema/Review')
 const jwtDecode = require('jwt-decode');
-var cors = require('cors');
+const cors = require('cors');
 const sha1 = require('sha1');
-
-
+const GA_TRACKING_ID = process.env.GA_KEY;
+const  rp = require('request-promise');
 app.use(cors());
 require('dotenv').config()
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -31,6 +31,41 @@ db.on('error', console.error.bind(console, 'connection error:'));
 var router = express.Router()
 
 app.use('/',router)
+
+
+
+function trackDimension(category, action, label, value, dimension, metric) {
+
+    var options = { method: 'GET',
+        url: 'https://www.google-analytics.com/collect',
+        qs:
+            {   // API Version.
+                v: '1',
+                // Tracking ID / Property ID.
+                tid: GA_TRACKING_ID,
+                // Random Client Identifier. Ideally, this should be a UUID that
+                // is associated with particular user, device, or browser instance.
+                cid: crypto.randomBytes(16).toString("hex"),
+                // Event hit type.
+                t: 'event',
+                // Event category.
+                ec: category,
+                // Event action.
+                ea: action,
+                // Event label.
+                el: label,
+                // Event value.
+                ev: value,
+                // Custom Dimension
+                cd1: dimension,
+                // Custom Metric
+                cm1: metric
+            },
+        headers:
+            {  'Cache-Control': 'no-cache' } };
+
+    return rp(options);
+}
 router.post('/signup', (req, res) =>
 {
     if(req.body.username && req.body.password && req.body.name){
@@ -204,6 +239,7 @@ router.route('/reviews')
                 res.end();
             }
             else if (!result) {
+
                 res.status(200).send({success: false, msg: "Movies are not in the database"})
                 res.end();
             }
@@ -226,6 +262,7 @@ router.route('/reviews')
                         res.end();
                     }
                     else {
+                        trackDimension('Feedback', 'Rating', 'Feedback for Movie', req.body.rating , req.body.title, '1')
                         res.status(200).send({success: true, msg: 'Successful store new reviews.'})
                         res.end();
                     }

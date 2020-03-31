@@ -19,6 +19,8 @@
     "passport": "^0.4.1",
     "passport-http": "^0.3.0",
     "passport-jwt": "^3.0.1",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.5",
     "sha1": "^1.1.1"
   },
   "devDependencies": {
