@@ -10,6 +10,8 @@ const passport = require('passport')
 const port = process.env.PORT || 3000
 const User = require('./Schema/User')
 const Movie = require('./Schema/Movie')
+const Review = require('./Schema/Review')
+const jwtDecode = require('jwt-decode');
 var cors = require('cors');
 const sha1 = require('sha1');
 
@@ -28,24 +30,6 @@ db.on('error', console.error.bind(console, 'connection error:'));
 
 var router = express.Router()
 
-function getJSONObject(req) {
-    var json = {
-        headers : "No Headers",
-        key: process.env.UNIQUE_KEY,
-        body : "No Body"
-    };
-
-    if (req.body != null) {
-        json.body = req.body;
-    }
-    if (req.headers != null) {
-        json.headers = req.headers;
-    }
-    if (req.query != null) {
-        json.query = req.query;
-    }
-    return json;
-}
 app.use('/',router)
 router.post('/signup', (req, res) =>
 {
@@ -98,22 +82,67 @@ router.post('/signin', (req, res) => {
 
 router.route('/movies')
     .get(authJwtController.isAuthenticated, function(req,res){
-     Movie.find({Title:req.body.title},function(err,result){
-         if(err) {
-             console.log(err)
-             res.status(500).send({success: false, msg: "Some thing wrong with your input"})
-         }
-         if(!result){
-             res.status(200).send({success: false, msg: "Movies are not in the database"})
-         }
-         else{
-             res.status(200).send({success: true, result:result })
-         }
-     })
-})
-router.route('/movies')
-    .post(authJwtController.isAuthenticated, function(req,res){
 
+        //Pass review == false
+       if(typeof req.body.reviews !== "undefined"  && req.body.reviews.toLowerCase() === "true"){
+           if (typeof req.body.title !== "undefined"){
+               //Do a look up here
+               Movie.aggregate([
+                   { $match : { Title :   req.body.title} },
+                   { $lookup:
+                           {
+                               localField: "Title",
+                               from: "reviews",
+                               foreignField: "movie_name",
+                               as: "reviews"
+                           }
+                   }
+               ],function(err,result){
+                   res.status(200).send({success:"True",results: result})
+               })
+           }
+           else {
+               Movie.aggregate([
+                   { $lookup:
+                           {
+                               localField: "Title",
+                               from: "reviews",
+                               foreignField: "movie_name",
+                               as: "reviews"
+                           }
+                   }
+               ],function(err,result){
+                   res.status(200).send({success:"True",results: result})
+               })
+           }
+       }
+       else{
+           if (typeof req.body.title !== "undefined"){
+               Movie.findOne({Title: req.body.title}, function(err, result) {
+                   if (err) return res.status(500).send({success:false,msg:"There is something wrong with the database"})
+                   else if(!result) return res.status(200).send({success:false,msg:"There is something wrong with your input"})
+                   else {
+                       return res.status(200).send({success: true, result:result});
+                   }
+               })
+           }
+           else {
+               Movie.find({}, function(err, result) {
+                   if (err) return res.status(500).send({success:false,msg:"There is something wrong with the database"})
+                   else if(!result) return res.status(200).send({success:false,msg:"There is something wrong with your input"})
+                   else {
+                       return res.status(200).send({success: true, result:result});
+                   }
+               })
+           }
+       }
+
+
+
+})
+
+router.route('/movies')
+    .post(authJwtController.isAuthenticated, function(req, res) {
     if(req.body.Actor.length < 3){
         return res.status(200).send({success:false, msg:"Check your input, your actor field is less than 3"})
     }
@@ -149,7 +178,7 @@ router.route('/movies')
     Movie.findOneAndDelete({ Title: req.body.title }, function(err, result) {
 
             if (err) {
-                return res.status(500).send({sucess:false,msg:"Something wrong, Please contact your admin"});
+                return res.status(500).send({success:false,msg:"Something wrong, Please contact your admin"});
             }
             if(!result)
             {
@@ -161,6 +190,81 @@ router.route('/movies')
         });
     })
 
+router.route('/reviews')
+    .post(authJwtController.isAuthenticated, function(req,res){
+
+        let token = req.headers['authorization']
+        let decode = jwtDecode(token);
+        let author_name = decode.username
+        //Check if the movies is in the movie database
+        Movie.findOne(  {Title: req.body.title }, function (err, result) {
+            if (err) {
+                console.log(err)
+                res.status(500).send({success: false, msg: "Something is wrong with your input"})
+                res.end();
+            }
+            else if (!result) {
+                res.status(200).send({success: false, msg: "Movies are not in the database"})
+                res.end();
+            }
+            else{
+                //Get the token
+                //Decode so I have username
+
+                let newReview = new Review(
+                    {movie_name:req.body.title, review: req.body.review,Rating: req.body.rating, author_name: author_name}
+                )
+
+                newReview.save(function (err, result) {
+                    console.log("Goto review movie")
+                    if (err) {
+                        res.status(500).send({success:false, msg:"Something wrong with your input"})
+                        res.end();
+                    }
+                    if(!result) {
+                        res.status(200).send({success: false, msg: "Something wrong with your input"})
+                        res.end();
+                    }
+                    else {
+                        res.status(200).send({success: true, msg: 'Successful store new reviews.'})
+                        res.end();
+                    }
+                });
+
+            }
+
+        })
+
+
+    })
+
+router.route('/reviews')
+    .get(authJwtController.isAuthenticated, function(req,res){
+        //Check to see if movie is in the dabase
+        Movie.find({Title: req.body.title}, function (err, result) {
+            if (err) {
+                console.log(err)
+                return res.status(500).send({success: false, msg: "Some thing wrong with your input"})
+            }
+            if (!result) {
+                return res.status(200).send({success: false, msg: "Movies are not in the database"})
+            }
+        })
+
+        Review.find({Title:req.body.title},function(err,result){
+            if(err) {
+                console.log(err)
+                res.status(500).send({success: false, msg: "Some thing wrong with your input"})
+            }
+            if(!result){
+                res.status(200).send({success: false, msg: "Movies are not in the database"})
+            }
+            else{
+                res.status(200).send({success: true, result:result })
+            }
+        })
+
+    })
 
 app.listen(port, () => console.log(`HW2 app listening on port ${port}!`))
 
