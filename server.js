@@ -37,7 +37,7 @@ app.use('/',router)
 
 function trackDimension(category, action, label, value, dimension, metric) {
 
-    var options = { method: 'GET',
+    var options = { method: 'POST',
         url: 'https://www.google-analytics.com/collect',
         qs:
             {   // API Version.
@@ -58,7 +58,7 @@ function trackDimension(category, action, label, value, dimension, metric) {
                 // Event value.
                 ev: value,
                 // Custom Dimension
-                cd2: dimension,
+                cd1: dimension,
                 // Custom Metric
                 cm1: metric
             },
