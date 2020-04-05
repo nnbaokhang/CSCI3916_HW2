@@ -109,7 +109,7 @@ router.post('/signin', (req, res) => {
                     else {
                         var userToken = {id: result._id, username: result.username,name:result.name};
                         var token = jwt.sign(userToken, process.env.SECRET_KEY);
-                        res.json({success: true, token: 'Bearer ' + token})
+                        res.json({success: true, token: token})
                     }
 
             })
