@@ -134,7 +134,7 @@ router.route('/movies')
                            }
                    }
                ],function(err,result){
-                   res.status(200).send({success:"True",results: result})
+                   res.status(200).send({success:true,results: result})
                })
            }
            else {
@@ -148,7 +148,7 @@ router.route('/movies')
                            }
                    }
                ],function(err,result){
-                   res.status(200).send({success:"True",results: result})
+                   res.status(200).send({success:true,results: result})
                })
            }
        }
