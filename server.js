@@ -119,12 +119,12 @@ router.post('/signin', (req, res) => {
 router.route('/movies')
     .get(authJwtController.isAuthenticated, function(req,res){
 
-        //Pass review == false
-       if(typeof req.body.reviews !== "undefined"  && req.body.reviews.toLowerCase() === "true"){
-           if (typeof req.body.title !== "undefined"){
+        //Pass review == true
+       if(typeof req.query.reviews !== "undefined"  && req.query.reviews.toLowerCase() === "true"){
+           if (typeof req.query.title !== "undefined"){
                //Do a look up here
                Movie.aggregate([
-                   { $match : { Title :   req.body.title} },
+                   { $match : { Title :   req.query.title} },
                    { $lookup:
                            {
                                localField: "Title",
@@ -134,8 +134,25 @@ router.route('/movies')
                            }
                    }
                ],function(err,result){
-                   res.status(200).send({success:true,results: result})
+                   let count = 0
+                   if(result.length === 0){
+                       res.status(200).send({success: true, results: [], rating: 0})
+                   }
+                   else if(typeof result[0].reviews !== "undefined") {
+                       for (let i = 0; i < result[0].reviews.length; i++) {
+                           //  console.log(result[i].reviews)
+                           count += parseInt(result[0].reviews[i].Rating, 10)
+                       }
+                       if (result[0].reviews.length > 0)
+                           count = count / result[0].reviews.length
+                       res.status(200).send({success: true, results: result[0], rating: count})
+                   }
+                   else{
+                       res.status(200).send({success: true, results: [], rating: 0})
+                   }
                })
+
+
            }
            else {
                Movie.aggregate([
@@ -148,7 +165,24 @@ router.route('/movies')
                            }
                    }
                ],function(err,result){
-                   res.status(200).send({success:true,results: result})
+                   let sort_Movie = []
+
+                   for(let i = 0 ; i < result.length; i++){
+                       sort_Movie.push({movie:result[i].Title,rating:0,image:result[i].image})
+                       let count = 0
+
+                       for(let j = 0 ; j < result[i].reviews.length;j++){
+                         //  console.log(result[i].reviews)
+                           count += parseInt(result[i].reviews[j].Rating,10)
+                       }
+                       if(result[i].reviews.length > 0)
+                        count = count /result[i].reviews.length
+                       sort_Movie[i].rating = count
+                   }
+                   console.log(sort_Movie)
+                   sort_Movie = sort_Movie.sort((a,b)=> {return b.rating - a.rating })
+                   console.log(sort_Movie)
+                   res.status(200).send({success:true,results: sort_Movie})
                })
            }
        }
@@ -182,7 +216,8 @@ router.route('/movies')
     if(req.body.Actor.length < 3){
         return res.status(200).send({success:false, msg:"Check your input, your actor field is less than 3"})
     }
-    let newMovie = new Movie({Title:req.body.title, yearReleased: req.body.yearReleased,Genre:req.body.Genre, Actor:req.body.Actor})
+    //Add image here
+    let newMovie = new Movie({Title:req.body.title, yearReleased: req.body.yearReleased,Genre:req.body.Genre, Actor:req.body.Actor,image:req.body.image})
 
         newMovie.save(function (err, result) {
             if (err) {
@@ -200,7 +235,7 @@ router.route('/movies')
         if(req.body.Actor.length < 3){
             return res.status(200).send({success:false, msg:"Check your input, your actor field is less than 3"})
         }
-        Movie.findOneAndUpdate({Title: req.body.title}, {Title:req.body.title, yearReleased: req.body.yearReleased,Genre:req.body.Genre, Actor:req.body.Actor}, function(err, result) {
+        Movie.findOneAndUpdate({Title: req.body.title}, {Title:req.body.title, yearReleased: req.body.yearReleased,Genre:req.body.Genre, Actor:req.body.Actor,image:req.body.image}, function(err, result) {
             if (err) return res.status(500).send({success:false,msg:"There is something wrong with the database"})
             if(!result) return res.status(200).send({success:false,msg:"There is something wrong with your input"})
 
