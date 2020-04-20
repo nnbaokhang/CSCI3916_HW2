@@ -264,6 +264,7 @@ router.route('/movies')
 router.route('/reviews')
     .post(authJwtController.isAuthenticated, function(req,res){
 
+        console.log(req.body)
         let token = req.headers['authorization']
         let decode = jwtDecode(token);
         let author_name = decode.username
