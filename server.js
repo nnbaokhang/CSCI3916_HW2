@@ -155,35 +155,53 @@ router.route('/movies')
 
            }
            else {
-               Movie.aggregate([
-                   { $lookup:
-                           {
-                               localField: "Title",
-                               from: "reviews",
-                               foreignField: "movie_name",
-                               as: "reviews"
-                           }
-                   }
-               ],function(err,result){
-                   let sort_Movie = []
-
-                   for(let i = 0 ; i < result.length; i++){
-                       sort_Movie.push({movie:result[i].Title,rating:0,image:result[i].image})
-                       let count = 0
-
-                       for(let j = 0 ; j < result[i].reviews.length;j++){
-                         //  console.log(result[i].reviews)
-                           count += parseInt(result[i].reviews[j].Rating,10)
+               if (typeof(req.query.search) === "undefined") {
+                   Movie.aggregate([
+                       {
+                           $lookup:
+                               {
+                                   localField: "Title",
+                                   from: "reviews",
+                                   foreignField: "movie_name",
+                                   as: "reviews"
+                               }
                        }
-                       if(result[i].reviews.length > 0)
-                        count = count /result[i].reviews.length
-                       sort_Movie[i].rating = count
-                   }
-                   console.log(sort_Movie)
-                   sort_Movie = sort_Movie.sort((a,b)=> {return b.rating - a.rating })
-                   console.log(sort_Movie)
-                   res.status(200).send({success:true,results: sort_Movie})
-               })
+                   ], function (err, result) {
+
+                       let sort_Movie = []
+                       for (let i = 0; i < result.length; i++) {
+                           sort_Movie.push({movie: result[i].Title, rating: 0, image: result[i].image})
+                           let count = 0
+
+                           for (let j = 0; j < result[i].reviews.length; j++) {
+                               //  console.log(result[i].reviews)
+                               count += parseInt(result[i].reviews[j].Rating, 10)
+                           }
+                           if (result[i].reviews.length > 0)
+                               count = count / result[i].reviews.length
+                           sort_Movie[i].rating = count
+                       }
+                       console.log(sort_Movie)
+                       sort_Movie = sort_Movie.sort((a, b) => {
+                           return b.rating - a.rating
+                       })
+                       console.log(sort_Movie)
+                       res.status(200).send({success: true, results: sort_Movie})
+                   })
+               }
+               else{
+
+                   Movie.find({ Title: { $regex: req.query.search, $options: "i" } }, function(err, docs) {
+                       if (err)  res.status(200).send({success: false, results: []})
+                       else if(docs) {
+                           console.log("Partial Search Begins");
+                           console.log(docs);
+                           res.status(200).send({success: true, results: docs})
+                       }
+                   });
+
+
+               }
            }
        }
        else{
